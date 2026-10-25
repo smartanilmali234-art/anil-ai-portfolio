@@ -1,0 +1,14 @@
+node_modules
+.next
+.agents
+.env
+.env.local
+.env.production
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+__pycache__/
+*.pyc
+.venv/
+

@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anil Mali | AI & ML Engineer Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #080c0a;
+      --term-bg: rgba(10, 16, 12, 0.96);
+      --primary: #00ff66;
+      --primary-glow: rgba(0, 255, 102, 0.4);
+      --primary-dim: #00993d;
+      --secondary: #00e5ff;
+      --accent: #ffb000;
+      --alert: #ff3366;
+      --text: #d4ffd8;
+      --text-muted: #5e8f66;
+      --border: rgba(0, 255, 102, 0.25);
+      --border-bright: rgba(0, 255, 102, 0.6);
+      --font-mono: 'Fira Code', monospace;
+      --font-crt: 'VT323', monospace;
+    }
+
+    /* Amber theme */
+    body.theme-amber {
+      --bg-color: #0c0a06;
+      --term-bg: rgba(18, 14, 8, 0.96);
+      --primary: #ffb000;
+      --primary-glow: rgba(255, 176, 0, 0.4);
+      --primary-dim: #996a00;
+      --secondary: #ff7700;
+      --accent: #00e5ff;
+      --alert: #ff3333;
+      --text: #ffecc2;
+      --text-muted: #8f774a;
+      --border: rgba(255, 176, 0, 0.25);
+      --border-bright: rgba(255, 176, 0, 0.6);
+    }
+
+    /* Cyan theme */
+    body.theme-cyan {
+      --bg-color: #040d12;
+      --term-bg: rgba(7, 21, 28, 0.96);
+      --primary: #00f0ff;
+      --primary-glow: rgba(0, 240, 255, 0.4);
+      --primary-dim: #008799;
+      --secondary: #7000ff;
+      --accent: #00ff88;
+      --alert: #ff0055;
+      --text: #d6f8ff;
+      --text-muted: #4e808f;
+      --border: rgba(0, 240, 255, 0.25);
+      --border-bright: rgba(0, 240, 255, 0.6);
+    }
+
+    /* Matrix Hacker theme */
+    body.theme-matrix {
+      --bg-color: #020502;
+      --term-bg: rgba(3, 10, 4, 0.98);
+      --primary: #20c20e;
+      --primary-glow: rgba(32, 194, 14, 0.5);
+      --primary-dim: #137708;
+      --secondary: #58f844;
+      --accent: #a3ff95;
+      --alert: #ff2222;
+      --text: #aaffaa;
+      --text-muted: #3d7e36;
+      --border: rgba(32, 194, 14, 0.3);
+      --border-bright: rgba(32, 194, 14, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+      transition: background-color 0.3s ease;
+    }
+
+    /* CRT Vignette & Screen Curvature */
+    body::before {
+      content: " ";
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: radial-gradient(circle at center, transparent 65%, rgba(0, 0, 0, 0.75) 100%);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* Scanlines effect */
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 0, 0, 0.28) 50%,
+        rgba(0, 0, 0, 0.28)
+      );
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 98;
+      opacity: 0.85;
+    }
+
+    .scanlines.off {
+      display: none;
+    }
+
+    /* CRT Flicker animation */
+    @keyframes crtFlicker {
+      0% { opacity: 0.995; }
+      50% { opacity: 1; }
+      52% { opacity: 0.97; }
+      54% { opacity: 1; }
+      80% { opacity: 0.99; }
+      90% { opacity: 0.98; }
+      100% { opacity: 1; }
+    }
+
+    .crt-glow {
+      text-shadow: 0 0 6px var(--primary-glow);
+    }
+
+    #app-container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      animation: crtFlicker 0.15s infinite;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Terminal Shell Window */
+    .terminal-window {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--term-bg);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.6), 0 0 10px var(--border);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+
+    /* Header Bar */
+    .term-header {
+      background: rgba(0, 0, 0, 0.6);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .term-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .circle-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .btn-close { background: #ff5f56; }
+    .btn-min { background: #ffbd2e; }
+    .btn-max { background: #27c93f; }
+
+    .term-title {
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--primary);
+      text-transform: uppercase;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .term-tools {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .tool-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+
+    .tool-btn:hover, .tool-btn.active {
+      color: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    /* Terminal Output Body */
+    .term-body {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    .term-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .term-body::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.4);
+    }
+    .term-body::-webkit-scrollbar-thumb {
+      background: var(--border-bright);
+      border-radius: 3px;
+    }
+
+    /* ASCII Banner */
+    .ascii-banner {
+      font-family: var(--font-crt);
+      font-size: 18px;
+      line-height: 1.1;
+      color: var(--primary);
+      white-space: pre;
+      margin-bottom: 12px;
+      text-shadow: 0 0 8px var(--primary-glow);
+      overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+      .ascii-banner {
+        font-size: 12px;
+      }
+      #app-container {
+        padding: 6px;
+      }
+    }
+
+    /* Terminal Content Styling */
+    .line {
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+
+    .prompt-label {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .user-cmd {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .system-msg {
+      color: var(--text-muted);
+    }
+
+    .accent-text {
+      color: var(--secondary);
+    }
+
+    .highlight-text {
+      color: var(--accent);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: rgba(0, 255, 102, 0.08);
+      color: var(--primary);
+      margin-right: 4px;
+      margin-top: 2px;
+    }
+
+    /* Command Table */
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 6px 16px;
+      margin: 8px 0 12px 12px;
+    }
+
+    .cmd-name {
+      color: var(--secondary);
+      font-weight: 600;
+    }
+
+    .cmd-desc {
+      color: var(--text);
+    }
+
+    /* Project Cards in CLI */
+    .project-card {
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      border-left: 3px solid var(--primary);
+    }
+
+    .project-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .project-desc {
+      color: var(--text);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .project-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .skill-bar-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .skill-name {
+      width: 160px;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .skill-bar {
+      flex: 1;
+      max-width: 240px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .skill-fill {
+      height: 100%;
+      background: var(--primary);
+      box-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    .skill-percent {
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 600;
+      width: 40px;
+    }
+
+    /* Input Line */
+    .input-line {
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+      position: relative;
+    }
+
+    .input-prompt {
+      color: var(--primary);
+      font-weight: 700;
+      white-space: nowrap;
+      margin-right: 8px;
+    }
+
+    .cmd-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      caret-color: var(--primary);
+    }
+
+    /* Quick Action Chips */
+    .quick-chips {
+      background: rgba(0, 0, 0, 0.5);
+      border-top: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .quick-chips::-webkit-scrollbar {
+      height: 4px;
+    }
+    .quick-chips::-webkit-scrollbar-thumb {
+      background: var(--border);
+    }
+
+    .chip-btn {
+      background: rgba(0, 255, 102, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .chip-btn:hover {
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 10px var(--primary);
+      font-weight: 600;
+    }
+
+    /* Matrix Digital Rain Canvas */
+    #matrix-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0.15;
+    }
+
+    a.term-link {
+      color: var(--secondary);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    a.term-link:hover {
+      color: #ffffff;
+      text-shadow: 0 0 6px var(--secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines" id="scanlines"></div>
+  <canvas id="matrix-canvas"></canvas>
+
+  <div id="app-container">
+    <div class="terminal-window">
+      <!-- Terminal Header -->
+      <div class="term-header">
+        <div class="term-controls">
+          <span class="circle-btn btn-close"></span>
+          <span class="circle-btn btn-min"></span>
+          <span class="circle-btn btn-max"></span>
+          <span class="term-title">
+            <span style="opacity: 0.6;">⚡</span>
+            <span>ANIL_MALI_OS :: AI / ML WORKSTATION v2.4</span>
+          </span>
+        </div>
+        <div class="term-tools">
+          <button class="tool-btn" id="btn-sound" title="Toggle Mechanical Audio">AUDIO: OFF</button>
+          <button class="tool-btn" id="btn-scanlines" title="Toggle CRT Scanlines">CRT: ON</button>
+          <button class="tool-btn" id="btn-theme" title="Cycle Color Theme">THEME: GREEN</button>
+          <button class="tool-btn" id="btn-clear-top" title="Clear Terminal">CLEAR</button>
+        </div>
+      </div>
+
+      <!-- Terminal Output Screen -->
+      <div class="term-body" id="term-body">
+        <pre class="ascii-banner">
+ █████╗ ███╗   ██╗██╗██╗         ███╗   ███╗ █████╗ ██╗     ██╗
+██╔══██╗████╗  ██║██║██║         ████╗ ████║██╔══██╗██║     ██║
+███████║██╔██╗ ██║██║██║         ██╔████╔██║███████║██║     ██║
+██╔══██║██║╚██╗██║██║██║         ██║╚██╔╝██║██╔══██║██║     ██║
+██║  ██║██║ ╚████║██║███████╗    ██║ ╚═╝ ██║██║  ██║███████╗██║
+╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚══════╝    ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝
+ >> ARTIFICIAL INTELLIGENCE & MACHINE LEARNING ENGINEER // NEURAL ARCHITECT
+        </pre>
+
+        <div class="line system-msg">
+          [KERNEL 6.12-ML] Initialized NVIDIA RTX 4090 Tensor Core Pipeline (24576MB VRAM).<br>
+          [STATUS] PyTorch 2.5 + CUDA 12.4 + LangChain + Hugging Face Transformers ready.<br>
+          Welcome to Anil Mali's interactive AI/ML terminal environment.<br>
+          Type <span class="highlight-text">'help'</span> or click the buttons below to explore projects, skills, and demos.
+        </div>
+
+        <div id="output-area"></div>
+
+        <!-- Input Row -->
+        <div class="input-line">
+          <span class="input-prompt">anil@ml-core:~$</span>
+          <input type="text" id="cmd-input" class="cmd-input" autofocus autocomplete="off" spellcheck="false" placeholder="Type a command (e.g. 'help', 'projects', 'skills')...">
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="quick-chips">
+        <button class="chip-btn" data-cmd="help">help</button>
+        <button class="chip-btn" data-cmd="about">about</button>
+        <button class="chip-btn" data-cmd="skills">skills</button>
+        <button class="chip-btn" data-cmd="projects">projects</button>
+        <button class="chip-btn" data-cmd="experience">experience</button>
+        <button class="chip-btn" data-cmd="certs">certifications</button>
+        <button class="chip-btn" data-cmd="contact">contact</button>
+        <button class="chip-btn" data-cmd="resume">resume.pdf</button>
+        <button class="chip-btn" data-cmd="run_model rag">run_model rag</button>
+        <button class="chip-btn" data-cmd="matrix">matrix</button>
+        <button class="chip-btn" data-cmd="clear">clear</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- PORTFOLIO DATA ---
+    const PROFILE = {
+      name: "Anil Mali",
+      title: "AI / Machine Learning Engineer & Generative AI Developer",
+      location: "India · Open to Remote / Hybrid Roles",
+      email: "smartanilmali234@gmail.com",
+      phone: "+91 89047 22764",
+      education: "B.E. from KLE College of Engineering and Technology (2023 - Present)",
+      bio: "Passionate AI/ML Engineer specializing in Retrieval-Augmented Generation (RAG), LLM fine-tuning, Computer Vision, and scalable MLOps architectures. Experienced in building enterprise-grade intelligent systems with PyTorch, LangChain, and modern cloud deployment pipelines.",
+      socials: {
+        github: "https://github.com/smartanilmali234-art",
+        linkedin: "https://www.linkedin.com/in/anil-mali-71202727b",
+        leetcode: "https://leetcode.com/u/smartanilmali234-art",
+        portfolioRepo: "https://github.com/smartanilmali234-art/Anilprotfolio",
+        kaggle: "https://www.kaggle.com",
+        medium: "https://medium.com"
+      }
+    };
+
+    const SKILLS = [
+      { name: "Python / C++", level: 95, cat: "Programming" },
+      { name: "Machine Learning (Core)", level: 94, cat: "Core" },
+      { name: "Deep Learning (PyTorch/TF)", level: 92, cat: "Core" },
+      { name: "Generative AI & LLMs", level: 90, cat: "AI" },
+      { name: "Computer Vision (YOLO/OpenCV)", level: 92, cat: "AI" },
+      { name: "NLP & Vector DBs (Pinecone/Chroma)", level: 88, cat: "AI" },
+      { name: "MLOps & Docker / Kubernetes", level: 89, cat: "Systems" },
+      { name: "LangChain & LangGraph", level: 86, cat: "Frameworks" },
+      { name: "FastAPI / Next.js / Full-Stack", level: 84, cat: "Systems" }
+    ];
+
+    const PROJECTS = [
+      {
+        id: "rag-chatbot",
+        title: "RAG Chatbot Enterprise Engine",
+        desc: "Enterprise retrieval-augmented generation answer engine with hybrid search, real-time citation tracking, and hallucinations guardrails.",
+        tech: ["LangChain", "OpenAI", "Pinecone", "FastAPI", "Python"],
+        metrics: "92% answer relevance · < 800ms latency",
+        deployment: "Production-ready"
+      },
+      {
+        id: "llm-finetuning",
+        title: "LLM Fine-Tuning & Evaluation Platform",
+        desc: "Automated LoRA/QLoRA dataset management and training orchestration pipeline for domain-specific assistant adaptation.",
+        tech: ["PyTorch", "Hugging Face", "Docker", "MLflow"],
+        metrics: "3x faster experimentation cycle · 4-bit quantization",
+        deployment: "Staging"
+      },
+      {
+        id: "cv-defect-detect",
+        title: "Computer Vision Industrial Defect Detection",
+        desc: "Real-time edge defect inspection system utilizing customized YOLO backbone with live bounding box overlays and anomaly scoring.",
+        tech: ["YOLOv8", "PyTorch", "OpenCV", "FastAPI"],
+        metrics: "99.4% validation accuracy · 45 FPS edge inference",
+        deployment: "Production"
+      },
+      {
+        id: "ai-doc-assistant",
+        title: "AI Document Intelligence & OCR Pipeline",
+        desc: "Multi-page unstructured document processor featuring text localization, classification, entity extraction, and semantic summarization.",
+        tech: ["OCR", "NLP", "OpenCV", "Next.js", "Python"],
+        metrics: "1.8s median processing time per invoice",
+        deployment: "Production"
+      },
+      {
+        id: "recommendation-engine",
+        title: "Hybrid Real-Time Recommendation Engine",
+        desc: "Session-aware two-tower neural recommendation system combining collaborative filtering with contextual similarity signals.",
+        tech: ["Scikit-Learn", "XGBoost", "Pandas", "SQL"],
+        metrics: "14% lift in CTR · 50k QPS throughput",
+        deployment: "Production"
+      },
+      {
+        id: "mlops-pipeline",
+        title: "End-to-End MLOps Automated CI/CD Pipeline",
+        desc: "Automated drift detection, dataset validation gates, model registry versioning, and canary container rollout orchestrations.",
+        tech: ["Docker", "Kubernetes", "MLflow", "Airflow"],
+        metrics: "Zero-downtime model deployments",
+        deployment: "Production"
+      }
+    ];
+
+    const EXPERIENCE = [
+      {
+        year: "2025",
+        role: "AI Engineer Intern",
+        company: "FlyRank AI",
+        desc: "Architected product-facing generative AI workflows, prompt optimization pipelines, and automated LLM evaluation benchmarks for end-user tools.",
+        tech: ["Python", "LLMs", "MLOps", "Analytics"]
+      },
+      {
+        year: "2024",
+        role: "Machine Learning Engineer",
+        company: "Freelance Client Projects",
+        desc: "Delivered customized end-to-end AI systems in computer vision inspection, semantic search, and document data extraction.",
+        tech: ["FastAPI", "Docker", "OpenCV", "PyTorch"]
+      },
+      {
+        year: "2023 - Present",
+        role: "B.E. Computer Science & AI Scholar",
+        company: "KLE College of Engineering & Technology",
+        desc: "Building strong computer science foundations, publishing AI experiments, participating in hackathons, and developing production demos.",
+        tech: ["Algorithms", "Data Science", "Deep Learning"]
+      }
+    ];
+
+    const CERTS = [
+      { name: "FlyRank AI Internship Confirmation", status: "Verified", file: "public/flyrank-internship-confirmation.pdf" },
+      { name: "FlyRank Official Offer Letter", status: "Verified", file: "public/offer-letter.pdf" },
+      { name: "AWS Certified Machine Learning Specialist", status: "In Progress / Planned" },
+      { name: "Google Professional ML Engineer", status: "In Progress / Planned" },
+      { name: "DeepLearning.AI Generative AI & NLP", status: "In Progress / Planned" }
+    ];
+
+    // --- AUDIO SYNTHESIZER ---
+    let audioEnabled = false;
+    let audioCtx = null;
+
+    function playKeyClick() {
+      if (!audioEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(600 + Math.random() * 400, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+      } catch(e) {}
+    }
+
+    function playBeep(freq = 880, dur = 0.08) {
+      if (!audioEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      } catch(e) {}
+    }
+
+    // --- TERMINAL ENGINE ---
+    const outputArea = document.getElementById("output-area");
+    const cmdInput = document.getElementById("cmd-input");
+    const termBody = document.getElementById("term-body");
+    const history = [];
+    let historyIdx = -1;
+
+    function print(html, isCmd = false) {
+      const line = document.createElement("div");
+      line.className = "line";
+      line.innerHTML = html;
+      outputArea.appendChild(line);
+      termBody.scrollTop = termBody.scrollHeight;
+    }
+
+    function runCommand(rawCmd) {
+      const cmdStr = rawCmd.trim();
+      if (!cmdStr) return;
+
+      history.push(cmdStr);
+      historyIdx = history.length;
+
+      // Echo command
+      print(`<span class="prompt-label">anil@ml-core:~$</span> <span class="user-cmd">${escapeHtml(cmdStr)}</span>`);
+      playBeep(980, 0.06);
+
+      const parts = cmdStr.split(/\s+/);
+      const command = parts[0].toLowerCase();
+      const arg = parts.slice(1).join(" ");
+
+      switch (command) {
+        case "help":
+        case "?":
+          print(`
+            <div style="margin-top: 6px; margin-bottom: 4px; color: var(--primary); font-weight: 600;">AVAILABLE COMMANDS:</div>
+            <div class="cmd-grid">
+              <span class="cmd-name">about</span><span class="cmd-desc">Anil's background, education & summary</span>
+              <span class="cmd-name">skills</span><span class="cmd-desc">Technical proficiencies & ML stack</span>
+              <span class="cmd-name">projects</span><span class="cmd-desc">List highlighted AI/ML projects</span>
+              <span class="cmd-name">project &lt;id&gt;</span><span class="cmd-desc">Inspect details of a specific project</span>
+              <span class="cmd-name">experience</span><span class="cmd-desc">Work history & internships</span>
+              <span class="cmd-name">certs</span><span class="cmd-desc">Certifications & verification links</span>
+              <span class="cmd-name">contact</span><span class="cmd-desc">Email, phone, and social profile links</span>
+              <span class="cmd-name">resume</span><span class="cmd-desc">Download / preview Anil's resume</span>
+              <span class="cmd-name">run_model &lt;name&gt;</span><span class="cmd-desc">Simulate live ML inference demo (e.g. 'run_model rag')</span>
+              <span class="cmd-name">theme &lt;name&gt;</span><span class="cmd-desc">Change CRT color palette [green, amber, cyan, matrix]</span>
+              <span class="cmd-name">matrix</span><span class="cmd-desc">Toggle digital matrix rain visualization</span>
+              <span class="cmd-name">sound &lt;on|off&gt;</span><span class="cmd-desc">Toggle retro mechanical click sound synthesis</span>
+              <span class="cmd-name">clear</span><span class="cmd-desc">Clear the terminal screen</span>
+            </div>
+          `);
+          break;
+
+        case "about":
+        case "whoami":
+          print(`
+            <div style="margin-top: 6px; line-height: 1.6;">
+              <span class="accent-text" style="font-weight: 700; font-size: 15px;">${PROFILE.name}</span> — <span class="highlight-text">${PROFILE.title}</span><br>
+              <span class="system-msg">📍 ${PROFILE.location}</span><br>
+              <span class="system-msg">🎓 ${PROFILE.education}</span><br><br>
+              ${PROFILE.bio}<br><br>
+              <span class="system-msg">Type <span class="highlight-text">'skills'</span> or <span class="highlight-text">'projects'</span> to see what I build.</span>
+            </div>
+          `);
+          break;
+
+        case "skills":
+          let skillsHtml = `<div style="margin-top: 6px; color: var(--primary); font-weight: 600; margin-bottom: 8px;">TECHNICAL PROFICIENCIES & FRAMEWORKS:</div>`;
+          SKILLS.forEach(s => {
+            skillsHtml += `
+              <div class="skill-bar-wrapper">
+                <span class="skill-name">${s.name}</span>
+                <div class="skill-bar"><div class="skill-fill" style="width: ${s.level}%;"></div></div>
+                <span class="skill-percent">${s.level}%</span>
+                <span class="badge">${s.cat}</span>
+              </div>
+            `;
+          });
+          print(skillsHtml);
+          break;
+
+        case "projects":
+          let projHtml = `<div style="margin-top: 6px; color: var(--primary); font-weight: 600; margin-bottom: 6px;">FEATURED MACHINE LEARNING PROJECTS (Total: ${PROJECTS.length}):</div>`;
+          PROJECTS.forEach(p => {
+            projHtml += `
+              <div class="project-card">
+                <div class="project-title">
+                  <span>${p.title}</span>
+                  <span class="badge" style="background: rgba(0, 229, 255, 0.15); border-color: var(--secondary); color: var(--secondary);">${p.deployment}</span>
+                </div>
+                <div class="project-desc">${p.desc}</div>
+                <div class="project-meta">
+                  <span>📊 Metrics: <b style="color: var(--text);">${p.metrics}</b></span>
+                </div>
+                <div>
+                  ${p.tech.map(t => `<span class="badge">${t}</span>`).join("")}
+                </div>
+              </div>
+            `;
+          });
+          projHtml += `<div class="system-msg">💡 Tip: Try running <span class="highlight-text">'run_model rag'</span> to simulate an interactive inference run.</div>`;
+          print(projHtml);
+          break;
+
+        case "experience":
+          let expHtml = `<div style="margin-top: 6px; color: var(--primary); font-weight: 600; margin-bottom: 8px;">PROFESSIONAL WORK & ACADEMIC EXPERIENCE:</div>`;
+          EXPERIENCE.forEach(e => {
+            expHtml += `
+              <div style="margin-bottom: 12px; border-left: 2px solid var(--secondary); padding-left: 10px;">
+                <div style="font-weight: 700; color: var(--secondary);">${e.year} :: ${e.role} @ <span style="color: #fff;">${e.company}</span></div>
+                <div style="font-size: 13px; color: var(--text); margin-top: 2px;">${e.desc}</div>
+                <div style="margin-top: 4px;">${e.tech.map(t => `<span class="badge">${t}</span>`).join("")}</div>
+              </div>
+            `;
+          });
+          print(expHtml);
+          break;
+
+        case "certs":
+        case "certifications":
+          let certHtml = `<div style="margin-top: 6px; color: var(--primary); font-weight: 600; margin-bottom: 8px;">CERTIFICATIONS & VERIFIED CREDENTIALS:</div>`;
+          CERTS.forEach(c => {
+            certHtml += `
+              <div style="margin-bottom: 6px;">
+                • <b style="color: var(--text);">${c.name}</b> 
+                [<span style="color: ${c.status === 'Verified' ? 'var(--primary)' : 'var(--accent)'};">${c.status}</span>]
+                ${c.file ? ` — <a href="${c.file}" target="_blank" class="term-link">[View Official PDF]</a>` : ''}
+              </div>
+            `;
+          });
+          print(certHtml);
+          break;
+
+        case "contact":
+          print(`
+            <div style="margin-top: 6px; line-height: 1.8;">
+              <div style="color: var(--primary); font-weight: 600; margin-bottom: 4px;">INITIALIZE SYNAPSE CONTACT:</div>
+              • Email: <a href="mailto:${PROFILE.email}" class="term-link">${PROFILE.email}</a><br>
+              • Phone: <a href="tel:${PROFILE.phone.replace(/\\s+/g, '')}" class="term-link">${PROFILE.phone}</a><br>
+              • GitHub: <a href="${PROFILE.socials.github}" target="_blank" class="term-link">${PROFILE.socials.github}</a><br>
+              • LinkedIn: <a href="${PROFILE.socials.linkedin}" target="_blank" class="term-link">${PROFILE.socials.linkedin}</a><br>
+              • LeetCode: <a href="${PROFILE.socials.leetcode}" target="_blank" class="term-link">${PROFILE.socials.leetcode}</a><br>
+              • Portfolio Repo: <a href="${PROFILE.socials.portfolioRepo}" target="_blank" class="term-link">${PROFILE.socials.portfolioRepo}</a>
+            </div>
+          `);
+          break;
+
+        case "resume":
+        case "cv":
+          print(`
+            <div style="margin-top: 6px;">
+              [+] Accessing /public/resume.pdf ...<br>
+              [+] Resume file located.<br>
+              👉 <a href="/public/resume.pdf" target="_blank" class="term-link" style="font-weight: 700; font-size: 15px;">CLICK HERE TO OPEN / DOWNLOAD RESUME (PDF)</a>
+            </div>
+          `);
+          window.open('/public/resume.pdf', '_blank');
+          break;
+
+        case "run_model":
+          const model = arg || "rag";
+          print(`[INIT] Loading checkpoint: weights_${model}_v3.safetensors into GPU VRAM ...`);
+          setTimeout(() => {
+            print(`[CUDA] Allocating 4096MB tensor buffers on Device:0 (NVIDIA RTX 4090) ...`);
+          }, 300);
+          setTimeout(() => {
+            print(`[INFERENCE] Computing cross-entropy loss and embedding attention tensors ...<br>
+              [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100% COMPLETE<br>
+              <span style="color: var(--primary); font-weight: 700;">[RESULT] Inference completed in 42.8ms. Confidence Score: 98.7%. Perplexity: 1.14</span>
+            `);
+            playBeep(1200, 0.15);
+          }, 800);
+          break;
+
+        case "theme":
+          const themeName = arg.toLowerCase();
+          if (["green", "amber", "cyan", "matrix"].includes(themeName)) {
+            setTheme(themeName);
+            print(`[+] Switched theme to: <span class="highlight-text">${themeName.toUpperCase()}</span>`);
+          } else {
+            print(`[-] Unknown theme. Available themes: green, amber, cyan, matrix.`);
+          }
+          break;
+
+        case "sound":
+        case "audio":
+          if (arg.toLowerCase() === "on") {
+            audioEnabled = true;
+          } else if (arg.toLowerCase() === "off") {
+            audioEnabled = false;
+          } else {
+            audioEnabled = !audioEnabled;
+          }
+          document.getElementById("btn-sound").textContent = `AUDIO: ${audioEnabled ? 'ON' : 'OFF'}`;
+          print(`[+] Mechanical Audio Synthesis: <span class="highlight-text">${audioEnabled ? 'ENABLED' : 'DISABLED'}</span>`);
+          if (audioEnabled) playBeep(880, 0.1);
+          break;
+
+        case "matrix":
+          toggleMatrix();
+          print(`[+] Matrix digital rain visualization toggled.`);
+          break;
+
+        case "clear":
+        case "cls":
+          outputArea.innerHTML = "";
+          break;
+
+        case "date":
+          print(new Date().toString());
+          break;
+
+        case "echo":
+          print(escapeHtml(arg));
+          break;
+
+        default:
+          print(`bash: command not found: <span style="color: var(--alert);">${escapeHtml(command)}</span>. Type <span class="highlight-text">'help'</span> for list of commands.`);
+          playBeep(300, 0.15);
+          break;
+      }
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Input listeners
+    cmdInput.addEventListener("keydown", (e) => {
+      playKeyClick();
+      if (e.key === "Enter") {
+        const val = cmdInput.value;
+        cmdInput.value = "";
+        runCommand(val);
+      } else if (e.key === "ArrowUp") {
+        if (history.length > 0 && historyIdx > 0) {
+          historyIdx--;
+          cmdInput.value = history[historyIdx];
+        }
+        e.preventDefault();
+      } else if (e.key === "ArrowDown") {
+        if (historyIdx < history.length - 1) {
+          historyIdx++;
+          cmdInput.value = history[historyIdx];
+        } else {
+          historyIdx = history.length;
+          cmdInput.value = "";
+        }
+        e.preventDefault();
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        const available = ["help", "about", "skills", "projects", "experience", "certs", "contact", "resume", "run_model", "theme", "matrix", "clear", "sound"];
+        const cur = cmdInput.value.trim().toLowerCase();
+        if (cur) {
+          const match = available.find(c => c.startsWith(cur));
+          if (match) cmdInput.value = match + " ";
+        }
+      }
+    });
+
+    // Keep focus inside terminal on click
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("button") && !e.target.closest("a")) {
+        cmdInput.focus();
+      }
+    });
+
+    // Quick chip clicks
+    document.querySelectorAll(".chip-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cmd = btn.getAttribute("data-cmd");
+        runCommand(cmd);
+        cmdInput.focus();
+      });
+    });
+
+    // Header buttons
+    document.getElementById("btn-clear-top").addEventListener("click", () => {
+      outputArea.innerHTML = "";
+      cmdInput.focus();
+    });
+
+    document.getElementById("btn-sound").addEventListener("click", function() {
+      audioEnabled = !audioEnabled;
+      this.textContent = `AUDIO: ${audioEnabled ? 'ON' : 'OFF'}`;
+      this.classList.toggle("active", audioEnabled);
+      if (audioEnabled) playBeep(880, 0.1);
+    });
+
+    document.getElementById("btn-scanlines").addEventListener("click", function() {
+      const el = document.getElementById("scanlines");
+      el.classList.toggle("off");
+      this.textContent = `CRT: ${el.classList.contains("off") ? 'OFF' : 'ON'}`;
+    });
+
+    const themes = ["green", "amber", "cyan", "matrix"];
+    let themeIdx = 0;
+    function setTheme(name) {
+      document.body.className = name === "green" ? "" : `theme-${name}`;
+      themeIdx = themes.indexOf(name);
+      document.getElementById("btn-theme").textContent = `THEME: ${name.toUpperCase()}`;
+    }
+
+    document.getElementById("btn-theme").addEventListener("click", function() {
+      themeIdx = (themeIdx + 1) % themes.length;
+      setTheme(themes[themeIdx]);
+    });
+
+    // --- MATRIX DIGITAL RAIN ---
+    let matrixRunning = false;
+    const canvas = document.getElementById("matrix-canvas");
+    const ctx = canvas.getContext("2d");
+    let matrixInterval = null;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    const matrixChars = "010101010101XYZΩλπμθ∂∇∑∏√∫≈≠≤≥AI/ML-PYTORCH-TENSORFLOW-LANGCHAIN-CUDA";
+    const fontSize = 14;
+    let drops = [];
+
+    function initMatrix() {
+      const columns = Math.floor(canvas.width / fontSize);
+      drops = [];
+      for (let i = 0; i < columns; i++) {
+        drops[i] = Math.floor(Math.random() * -50);
+      }
+    }
+
+    function drawMatrix() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary') || "#00ff66";
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    function toggleMatrix() {
+      matrixRunning = !matrixRunning;
+      if (matrixRunning) {
+        initMatrix();
+        canvas.style.opacity = "0.22";
+        matrixInterval = setInterval(drawMatrix, 40);
+      } else {
+        clearInterval(matrixInterval);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.opacity = "0.0";
+      }
+    }
+
+    // Auto-start subtle matrix background
+    toggleMatrix();
+  </script>
+</body>
+</html>
